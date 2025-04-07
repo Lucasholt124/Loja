@@ -25,7 +25,7 @@ const ProductPage = async ({
 
   return (
     <div className="container mx-auto px-4 py-8">
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+      <div className="grid grid-cols-1 gap-8 md:grid-cols-2">
         <div
           className={`relative aspect-square overflow-hidden rounded-lg shadow-lg ${isOutOfStock ? "opacity-50" : ""}`}
         >
@@ -39,18 +39,18 @@ const ProductPage = async ({
           )}
           {isOutOfStock && (
             <div className="absolute inset-0 flex items-center justify-center bg-black/50">
-              <span className="text-white font-bold text-lg">Fora de estoque</span>
+              <span className="text-lg font-bold text-white">Fora de estoque</span>
             </div>
           )}
         </div>
 
         <div className="flex flex-col justify-between">
           <div>
-            <h1 className="text-3xl font-bold mb-4">{product.name}</h1>
-            <div className="text-xl font-semibold mb-4">
+            <h1 className="mb-4 text-3xl font-bold">{product.name}</h1>
+            <div className="mb-4 text-xl font-semibold">
               R$:{product.price?.toFixed(2)}
             </div>
-            <div className="prose max-w-none mb-6">
+            <div className="prose mb-6 max-w-none">
               {Array.isArray(product.description) && (
                 <PortableText value={product.description} />
               )}

@@ -15,15 +15,15 @@ const SuccessPage = () => {
     if (orderNumber) {
       clearBasket();
     }
-  }, []);
+  }, [clearBasket, orderNumber]);
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen bg-gray-50">
-      <div className="bg-white p-12 rounded-xl shadow-lg max-w-2xl w-full mx-4">
-        <div className="flex justify-center mb-8">
-          <div className="h-16 w-16 bg-green-100 rounded-full flex items-center justify-center">
+    <div className="flex min-h-screen flex-col items-center justify-center bg-gray-50">
+      <div className="mx-4 w-full max-w-2xl rounded-xl bg-white p-12 shadow-lg">
+        <div className="mb-8 flex justify-center">
+          <div className="flex size-16 items-center justify-center rounded-full bg-green-100">
             <svg
-              className="h-8 w-8 text-green-600"
+              className="size-8 text-green-600"
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"
@@ -37,18 +37,18 @@ const SuccessPage = () => {
             </svg>
           </div>
         </div>
-        <h1 className="text-4xl font-bold mb-6 text-center">
+        <h1 className="mb-6 text-center text-4xl font-bold">
         Obrigado pelo seu pedido!
         </h1>
 
-        <div className="border-t border-b border-gray-200 py-6 mb-6">
-          <p className="text-lg text-gray-700 mb-4 text-center">
+        <div className="mb-6 border-y border-gray-200 py-6">
+          <p className="mb-4 text-center text-lg text-gray-700">
           Seu pedido foi confirmado e será enviado em breve
           </p>
         </div>
         <div className="space-y-2">
           {orderNumber && (
-            <p className="text-gray-600 flex items-center space-x-5">
+            <p className="flex items-center space-x-5 text-gray-600">
               <span>Número do pedido:</span>
               <span className="font-mono text-sm text-green-600">
                 {orderNumber}
@@ -57,10 +57,10 @@ const SuccessPage = () => {
           )}
         </div>
         <div className="space-y-4">
-          <p className="text-gray-600 text-center">
+          <p className="text-center text-gray-600">
           Um e-mail de confirmação foi enviado para seu endereço de e-mail registrado.
           </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+          <div className="flex flex-col justify-center gap-4 sm:flex-row">
             <Button asChild className="bg-green-600 hover:bg-green-700">
               <Link href="/orders">Ver detalhes do pedido</Link>
             </Button>

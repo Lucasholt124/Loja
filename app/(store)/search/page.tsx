@@ -14,12 +14,12 @@ const SearchPage = async ({
 
   if (!products.length) {
     return (
-      <div className="flex flex-col items-center min-h-screen bg-gray-100 p-4">
-        <div className="bg-white p-8 rounded-lg shadow-md w-full max-w-4xl">
-          <h1 className="text-3xl font-bold mb-6 text-center">
+      <div className="flex min-h-screen flex-col items-center bg-gray-100 p-4">
+        <div className="w-full max-w-4xl rounded-lg bg-white p-8 shadow-md">
+          <h1 className="mb-6 text-center text-3xl font-bold">
           Nenhum produto encontrado para {query}
           </h1>
-          <p className="text-gray-600 text-center">
+          <p className="text-center text-gray-600">
           Tente pesquisar com palavras-chave diferentes
           </p>
         </div>
@@ -28,9 +28,9 @@ const SearchPage = async ({
   }
 
   return (
-    <div className="flex flex-col items-center min-h-screen bg-gray-100 p-4">
-      <div className="bg-white p-8 rounded-lg shadow-md w-full max-w-4xl">
-        <h1 className="text-3xl font-bold mb-6 text-center">
+    <div className="flex min-h-screen flex-col items-center bg-gray-100 p-4">
+      <div className="w-full max-w-4xl rounded-lg bg-white p-8 shadow-md">
+        <h1 className="mb-6 text-center text-3xl font-bold">
         Resultados da pesquisa para {query}
         </h1>
         <ProductGrid products={products} />

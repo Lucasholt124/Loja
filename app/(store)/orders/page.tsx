@@ -36,9 +36,9 @@ const OrdersPage = async () => {
   const orders = await getMyOrders(userId);
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen bg-gray-50 p-4">
-      <div className="bg-white p-4 sm:p-8 rounded-xl shadow-lg w-full max-w-4xl">
-        <h1 className="text-4xl font-bold text-gray-900 tracking-tight mb-8">
+    <div className="flex min-h-screen flex-col items-center justify-center bg-gray-50 p-4">
+      <div className="w-full max-w-4xl rounded-xl bg-white p-4 shadow-lg sm:p-8">
+        <h1 className="mb-8 text-4xl font-bold tracking-tight text-gray-900">
           Meus pedidos
         </h1>
 
@@ -51,20 +51,20 @@ const OrdersPage = async () => {
             {orders.map((order: Order) => (
               <div
                 key={order.orderNumber}
-                className="bg-white border border-gray-200 rounded-lg shadow-sm overflow-hidden"
+                className="overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm"
               >
-                <div className="p-4 sm:p-6 border-b border-gray-200">
-                  <div className="flex flex-col gap-4 sm:flex-row sm:justify-between sm:items-center mb-4">
+                <div className="border-b border-gray-200 p-4 sm:p-6">
+                  <div className="mb-4 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                     <div>
-                      <p className="text-sm text-gray-600 mb-1 font-bold">
+                      <p className="mb-1 text-sm font-bold text-gray-600">
                         Número do pedido
                       </p>
-                      <p className="font-mono text-sm text-green-600 break-all">
+                      <p className="break-all font-mono text-sm text-green-600">
                         {order.orderNumber}
                       </p>
                     </div>
                     <div className="sm:text-right">
-                      <p className="text-sm text-gray-600 mb-1">Data do pedido</p>
+                      <p className="mb-1 text-sm text-gray-600">Data do pedido</p>
                       <p className="font-medium">
                         {order.orderDate
                           ? new Date(order.orderDate).toLocaleDateString()
@@ -73,10 +73,10 @@ const OrdersPage = async () => {
                     </div>
                   </div>
 
-                  <div className="flex flex-col gap-4 sm:flex-row sm:justify-between sm:items-center">
-                    <span className="text-sm mr-2">Status:</span>
+                  <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                    <span className="mr-2 text-sm">Status:</span>
                     <span
-                      className={`px-3 py-1 rounded-full text-sm ${
+                      className={`rounded-full px-3 py-1 text-sm ${
                         order.status === "paid"
                           ? "bg-green-100 text-green-800"
                           : "bg-gray-100 text-gray-800"
@@ -85,16 +85,16 @@ const OrdersPage = async () => {
                       {order.status}
                     </span>
                   </div>
-                  <div className="sm:text-right mt-4">
-                    <p className="text-sm text-gray-600 mb-1">Montante total</p>
-                    <p className="font-bold text-lg">
+                  <div className="mt-4 sm:text-right">
+                    <p className="mb-1 text-sm text-gray-600">Montante total</p>
+                    <p className="text-lg font-bold">
                       {formatCurrency(order.totalPrice ?? 0, order.currency)}
                     </p>
                   </div>
 
                   {order.amountDiscount ? (
-                    <div className="mt-4 p-3 sm:p-4 bg-red-50 rounded-lg">
-                      <p className="text-red-600 font-medium mb-1 text-sm sm:text-base">
+                    <div className="mt-4 rounded-lg bg-red-50 p-3 sm:p-4">
+                      <p className="mb-1 text-sm font-medium text-red-600 sm:text-base">
                         Desconto aplicado:{" "}
                         {formatCurrency(order.amountDiscount, order.currency)}
                       </p>
@@ -110,18 +110,18 @@ const OrdersPage = async () => {
                 </div>
 
                 <div className="px-4 py-3 sm:px-6 sm:py-4">
-                  <p className="text-sm font-semibold text-gray-600 mb-3 sm:mb-4">
+                  <p className="mb-3 text-sm font-semibold text-gray-600 sm:mb-4">
                     Itens do pedido
                   </p>
                   <div className="space-y-3 sm:space-y-4">
                     {order.products?.map((product: Product, index: number) => (
                       <div
                         key={product._key || index}
-                        className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 py-2 border-b last:border-b-0"
+                        className="flex flex-col gap-3 border-b py-2 last:border-b-0 sm:flex-row sm:items-center sm:justify-between"
                       >
                         <div className="flex items-center gap-3 sm:gap-4">
                           {product.product?.image && (
-                            <div className="relative h-14 w-14 sm:h-16 sm:w-16 flex-shrink-0 rounded-md overflow-hidden">
+                            <div className="relative size-14 shrink-0 overflow-hidden rounded-md sm:size-16">
                               <Image
                                 src={imageUrl(product.product.image).url()}
                                 alt={product.product.name ?? ""}
@@ -131,7 +131,7 @@ const OrdersPage = async () => {
                             </div>
                           )}
                           <div>
-                            <p className="font-medium text-sm sm:text-base">
+                            <p className="text-sm font-medium sm:text-base">
                               {product.product?.name}
                             </p>
                             <p className="text-sm text-gray-600">

@@ -10,7 +10,7 @@ const ProductThumb = ({ product }: { product: Product }) => {
   return (
     <Link
       href={`/product/${product.slug?.current}`}
-      className={`group flex flex-col overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm transition-all duration-200 hover:shadow-md p-2 ${isOutOfStock ? "opacity-50" : ""}`}
+      className={`group flex flex-col overflow-hidden rounded-lg border border-gray-200 bg-white p-2 shadow-sm transition-all duration-200 hover:shadow-md ${isOutOfStock ? "opacity-50" : ""}`}
     >
       <div className="relative aspect-square size-full overflow-hidden">
         {product.image && (
@@ -29,11 +29,11 @@ const ProductThumb = ({ product }: { product: Product }) => {
         )}
       </div>
       <div className="p-4">
-        <h2 className="text-lg font-semibold text-gray-800 truncate">
+        <h2 className="truncate text-lg font-semibold text-gray-800">
           {product.name}
         </h2>
 
-        <div className="mt-2 text-sm text-gray-600 line-clamp-2">
+        <div className="mt-2 line-clamp-2 text-sm text-gray-600">
           {Array.isArray(product.description) ? (
             <PortableText value={product.description} />
           ) : (

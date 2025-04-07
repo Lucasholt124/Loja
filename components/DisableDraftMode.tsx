@@ -29,7 +29,7 @@ const DisableDraftMode = () => {
   return (
     <button
       onClick={handleClick}
-      className="fixed bottom-4 ring-4 bg-gray-50 px-4 py-2 z-50"
+      className="fixed bottom-4 z-50 bg-gray-50 px-4 py-2 ring-4"
     >
       Desativar modo de rascunho
     </button>

@@ -13,6 +13,9 @@
  */
 
 // Source: schema.json
+// Query TypeMap
+import "@sanity/client";
+
 export type SanityImagePaletteSwatch = {
   _type: "sanity.imagePaletteSwatch";
   background?: string;
@@ -649,9 +652,6 @@ export type ACTIVE_SALE_BY_COUPON_QUERYResult = {
   validUntil?: string;
   isActive?: boolean;
 } | null;
-
-// Query TypeMap
-import "@sanity/client";
 declare module "@sanity/client" {
   interface SanityQueries {
     "\n        *[\n            _type == \"order\" && clerkUserId == $userId\n        ] | order(orderDate desc) {\n            ...,\n            products[]{\n                ...,\n                product->\n            }\n        }\n        ": MY_ORDERS_QUERYResult;

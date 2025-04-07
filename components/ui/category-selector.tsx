@@ -34,15 +34,15 @@ const CategorySelectorComponent = ({ categories }: CategorySelectorProps) => {
           variant="outline"
           role="combobox"
           aria-expanded={open}
-          className="w-full max-w-full relative flex justify-center sm:justify-start sm:flex-none items-center space-x-2 bg-blue-500 hover:bg-blue-700 hover:text-white text-white font-bold py-2 px-4 rounded"
+          className="relative flex w-full max-w-full items-center justify-center space-x-2 rounded bg-blue-500 px-4 py-2 font-bold text-white hover:bg-blue-700 hover:text-white sm:flex-none sm:justify-start"
         >
           {value
             ? categories.find((category) => category._id === value)?.title
             : "Filtrar por categoria"}
-          <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0" />
+          <ChevronsUpDown className="ml-2 size-4 shrink-0" />
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-full z-10">
+      <PopoverContent className="z-10 w-full">
         <Command>
           <CommandInput
             placeholder={`Pesquisar categoria...`}
