@@ -17,7 +17,7 @@ type Product = {
 };
 
 type Order = {
-  orderNumber: string;
+  orderNumber?: string;
   orderDate?: string;
   status: string;
   totalPrice?: number;
@@ -48,9 +48,9 @@ const OrdersPage = async () => {
           </div>
         ) : (
           <div className="space-y-6 sm:space-y-8">
-            {orders.map((order: Order) => (
+            {orders.map((order: Order, index: number) => (
               <div
-                key={order.orderNumber}
+                key={order.orderNumber ?? `order-${index}`}
                 className="overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm"
               >
                 <div className="border-b border-gray-200 p-4 sm:p-6">
