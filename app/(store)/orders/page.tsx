@@ -19,10 +19,10 @@ type Product = {
 type Order = {
   orderNumber?: string;
   orderDate?: string;
-  status: string;
+  status?: string; // corrigido aqui
   totalPrice?: number;
   amountDiscount?: number;
-  currency: string;
+  currency?: string; // também opcional
   products?: Product[];
 };
 
