@@ -11,7 +11,7 @@
   },
   "dependencies": {
     "@clerk/localizations": "^3.13.5",
-    "@clerk/nextjs": "^6.12.1",
+    "@clerk/nextjs": "^6.13.0",
     "@portabletext/react": "^3.2.1",
     "@radix-ui/react-dialog": "^1.1.2",
     "@radix-ui/react-popover": "^1.1.2",
