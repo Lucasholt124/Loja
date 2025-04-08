@@ -33,6 +33,7 @@ export async function POST(req: Request) {
 
   // Lógica do evento
   if (relevantEvents.has(event.type)) {
+    console.log('🔥 Webhook recebido com sucesso');
     try {
       if (event.type === "checkout.session.completed") {
         const session = event.data.object as Stripe.Checkout.Session;
