@@ -1,106 +1,117 @@
-import { Metadata } from "@/actions/createCheckoutSession";
-import stripe from "@/lib/stripe";
-import { backendClient } from "@/sanity/lib/backendClient";
 import { headers } from "next/headers";
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 import Stripe from "stripe";
 
-export async function POST(req: NextRequest) {
-  const body = await req.text();
-  const headersList = await headers();
-  const sig = headersList.get("stripe-signature");
+// Crie a instância do Stripe com sua Secret Key
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
+  apiVersion: "2025-03-31.basil",
+});
 
-  if (!sig) {
-    return NextResponse.json({ error: "No Signature" }, { status: 400 });
-  }
+// Lista de eventos que você quer tratar
+const relevantEvents = new Set([
+  "checkout.session.completed",
+  "payment_intent.succeeded",
+  "invoice.payment_succeeded", // ✅ Adicionado para controle de parcelas
+]);
 
-  const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
-
-  if (!webhookSecret) {
-    console.error("Stripe Webhook secret is not set");
-    return NextResponse.json(
-      { error: "Stripe webhook secret is not set" },
-      { status: 400 }
-    );
-  }
+export async function POST(req: Request) {
+  const body = await req.text(); // body como string (raw)
+  const sig = (await headers()).get("stripe-signature")!;
 
   let event: Stripe.Event;
 
   try {
-    event = stripe.webhooks.constructEvent(body, sig, webhookSecret);
-  } catch (error) {
-    console.error("Webhook signature verification failed:", error);
-    return NextResponse.json(
-      { error: `Webhook Error: ${(error as Error).message}` },
-      { status: 400 }
+    // Verifica assinatura com a Signing Secret
+    event = stripe.webhooks.constructEvent(
+      body,
+      sig,
+      process.env.STRIPE_WEBHOOK_SECRET!
     );
+  } catch (err: any) {
+    console.error("❌ Erro ao verificar webhook:", err.message);
+    return new NextResponse(`Webhook Error: ${err.message}`, { status: 400 });
   }
 
-  if (event.type === "checkout.session.completed") {
-    const session = event.data.object as Stripe.Checkout.Session;
-
+  // 🔥 Lógica dos eventos tratados
+  if (relevantEvents.has(event.type)) {
     try {
-      const order = await createOrderInSanity(session);
-      console.log("Order created in Sanity", order);
-    } catch (error) {
-      console.error("Error creating order in Sanity", error);
-      return NextResponse.json(
-        { error: "Error creating order" },
-        { status: 500 }
-      );
+      if (event.type === "checkout.session.completed") {
+        const session = event.data.object as Stripe.Checkout.Session;
+
+        console.log("✅ Sessão de checkout concluída:", session);
+
+        const isSubscription = session.mode === "subscription";
+        const isPayment = session.mode === "payment";
+
+        if (isPayment) {
+          console.log("💰 Pagamento único confirmado.");
+        }
+
+        if (isSubscription) {
+          console.log("📦 Assinatura iniciada para parcelamento.");
+        }
+
+        // Aqui você pode acessar session.metadata (orderNumber, clerkUserId, installments, etc.)
+        // E salvar no banco de dados, enviar e-mail, etc.
+      }
+
+      if (event.type === "payment_intent.succeeded") {
+        const paymentIntent = event.data.object as Stripe.PaymentIntent;
+
+        console.log("💸 Pagamento único bem-sucedido:", paymentIntent.id);
+        // Aqui você pode atualizar o status do pedido como "pago"
+      }
+
+      if (event.type === "invoice.payment_succeeded") {
+        const invoice = event.data.object as (Stripe.Invoice & { subscription?: string });
+        const subscriptionId = invoice.subscription as string;
+
+        if (!subscriptionId) {
+          console.log("⚠️ Invoice sem assinatura associada.");
+          return new NextResponse("No subscription on invoice", {
+            status: 200,
+          });
+        }
+
+        const subscription = await stripe.subscriptions.retrieve(subscriptionId);
+
+        const installments = parseInt(
+          subscription.metadata?.installments || "1"
+        );
+        const orderNumber = subscription.metadata?.orderNumber;
+        const currentPaid = parseInt(subscription.metadata?.paid_count || "0");
+
+        const newPaidCount = currentPaid + 1;
+
+        console.log(
+          `💳 Parcela ${newPaidCount}/${installments} paga para assinatura ${subscriptionId}`
+        );
+
+        // Atualiza o metadata com a quantidade de parcelas pagas
+        await stripe.subscriptions.update(subscriptionId, {
+          metadata: {
+            ...subscription.metadata,
+            paid_count: newPaidCount.toString(),
+          },
+        });
+
+        // Se pagou todas as parcelas, cancela a assinatura no final do período
+        if (newPaidCount >= installments) {
+          await stripe.subscriptions.update(subscriptionId, {
+            cancel_at_period_end: true,
+          });
+
+          console.log(
+            `✅ Parcelamento ${orderNumber} concluído. Assinatura será cancelada no final do período.`
+          );
+        }
+      }
+    } catch (err) {
+      console.error("❌ Erro no handler de evento:", err);
+      return new NextResponse("Webhook handler failed", { status: 500 });
     }
   }
 
-  return NextResponse.json({ received: true });
-}
-
-async function createOrderInSanity(session: Stripe.Checkout.Session) {
-  // Desestruturação com renomeação para camelCase
-  const {
-    id,
-    amountTotal,
-    currency,
-    metadata,
-    paymentIntent,
-    customer,
-    totalDetails,
-  } = session as any;
-
-  const amountDiscount = totalDetails?.amountDiscount ?? 0;
-
-  const { orderNumber, customerName, customerEmail, clerkUserId } =
-    metadata as Metadata;
-
-  const lineItemsWithProduct = await stripe.checkout.sessions.listLineItems(
-    id,
-    { expand: ["data.price.product"] }
-  );
-
-  const sanityProducts = lineItemsWithProduct.data.map((item) => ({
-    _key: crypto.randomUUID(),
-    product: {
-      _type: "reference",
-      _ref: (item.price?.product as Stripe.Product)?.metadata.id,
-    },
-    quantity: item.quantity || 0,
-  }));
-
-  const order = await backendClient.create({
-    _type: "order",
-    orderNumber,
-    stripeCheckoutSessionId: id,
-    stripePaymentIntentId: paymentIntent,
-    customerName,
-    stripeCustomerId: customer,
-    clerkUserId,
-    email: customerEmail,
-    currency,
-    amountDiscount: amountDiscount / 100,
-    products: sanityProducts,
-    totalPrice: amountTotal ? amountTotal / 100 : 0,
-    status: "paid",
-    orderDate: new Date().toISOString(),
-  });
-
-  return order;
+  // Stripe exige resposta 200 para confirmar recebimento
+  return new NextResponse("Received", { status: 200 });
 }

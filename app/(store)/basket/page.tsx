@@ -21,6 +21,7 @@ const BasketPage = () => {
 
   const [isClient, setIsClient] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [installments, setInstallments] = useState(1);
 
   useEffect(() => {
     setIsClient(true);
@@ -51,7 +52,11 @@ const BasketPage = () => {
         clerkUserId: user!.id,
       };
 
-      const checkoutUrl = await createCheckoutSession(groupedItems, metadata);
+      const checkoutUrl = await createCheckoutSession(
+        groupedItems,
+        metadata,
+        installments
+      );
 
       if (checkoutUrl) {
         window.location.href = checkoutUrl;
@@ -62,6 +67,12 @@ const BasketPage = () => {
       setIsLoading(false);
     }
   };
+
+  const total = useBasketStore.getState().getTotalPrice();
+
+  // 💸 Calcula valor da parcela
+  const totalWithShipping = total < 100 ? total + 40 : total;
+  const parcela = totalWithShipping / installments;
 
   return (
     <div className="container mx-auto max-w-6xl p-4">
@@ -95,8 +106,7 @@ const BasketPage = () => {
                     {item.product.name}
                   </h2>
                   <p className="text-sm sm:text-base">
-                  Preço:{" "}
-                    R$:{((item.product.price ?? 0) * item.quantity).toFixed(2)}
+                    Preço: R$: {(item.product.price! * item.quantity).toFixed(2)}
                   </p>
                 </div>
               </div>
@@ -111,17 +121,42 @@ const BasketPage = () => {
           <h3 className="text-xl font-semibold">Resumo do pedido</h3>
           <div className="mt-4 space-y-2">
             <p className="flex justify-between">
-              <span>Items:</span>
+              <span>Itens:</span>
               <span>
                 {groupedItems.reduce((total, item) => total + item.quantity, 0)}
               </span>
             </p>
+            {total < 100 && (
+              <p className="flex justify-between">
+                <span>Frete:</span>
+                <span>R$: 40.00</span>
+              </p>
+            )}
             <p className="flex justify-between border-t pt-2 text-2xl font-bold">
               <span>Total:</span>
-              <span>
-                R$:{useBasketStore.getState().getTotalPrice().toFixed(2)}
-              </span>
+              <span>R$: {totalWithShipping.toFixed(2)}</span>
             </p>
+          </div>
+
+          <div className="mt-4">
+            <label
+              htmlFor="installments"
+              className="mb-2 block text-sm font-medium text-gray-700"
+            >
+              Parcelar em:
+            </label>
+            <select
+              id="installments"
+              className="w-full rounded border px-3 py-2"
+              value={installments}
+              onChange={(e) => setInstallments(Number(e.target.value))}
+            >
+              {Array.from({ length: 12 }, (_, i) => i + 1).map((num) => (
+                <option key={num} value={num}>
+                  {num}x de R$ {parcela.toFixed(2).replace(".", ",")}
+                </option>
+              ))}
+            </select>
           </div>
 
           {isSignedIn ? (
@@ -130,16 +165,17 @@ const BasketPage = () => {
               disabled={isLoading}
               onClick={handleCheckout}
             >
-              {isLoading ? "Processing..." : "Checkout"}
+              {isLoading ? "Processando..." : `Finalizar em ${installments}x`}
             </button>
           ) : (
             <SignInButton mode="modal">
               <button className="mt-4 w-full rounded bg-blue-500 px-4 py-2 text-white hover:bg-blue-600">
-              Entre para finalizar a compra
+                Entre para finalizar a compra
               </button>
             </SignInButton>
           )}
         </div>
+
         <div className="h-64 lg:h-0"></div>
       </div>
     </div>

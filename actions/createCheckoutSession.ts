@@ -18,7 +18,8 @@ export type GroupedBasketItem = {
 
 export async function createCheckoutSession(
   items: GroupedBasketItem[],
-  metadata: Metadata
+  metadata: Metadata,
+  installments: number
 ) {
   try {
     const itemsWithoutPrice = items.filter((item) => !item.product.price);
@@ -45,44 +46,64 @@ export async function createCheckoutSession(
     const cancelUrl = `${baseUrl}/basket`;
 
     // Soma total dos produtos
-    const total = items.reduce((sum, item) => {
-      return sum + (item.product.price! * item.quantity);
-    }, 0);
+    const total = items.reduce(
+      (sum, item) => sum + (item.product.price! * item.quantity),
+      0
+    );
 
-    // Registra os produtos no Stripe
-    const line_items = items.map((item) => ({
-      price_data: {
-        currency: "brl",
-        unit_amount: Math.round(item.product.price! * 100),
-        product_data: {
-          name: item.product.name || "Unnamed Product",
-          description: `Product ID: ${item.product._id}`,
-          metadata: {
-            id: item.product._id,
-          },
-          images: item.product.image
-            ? [imageUrl(item.product.image).url()]
-            : undefined,
-        },
+    const needsShipping = total < 100;
+    const shippingAmount = needsShipping ? 40 : 0;
+
+    // Valor das parcelas (total + frete se tiver)
+    const totalWithShipping = total + shippingAmount;
+    const installmentValue = Math.ceil(
+      (totalWithShipping / installments) * 100
+    ); // em centavos
+
+    const product = await stripe.products.create({
+      name: `Pedido ${metadata.orderNumber}`,
+      description: items
+        .map((item) => `${item.product.name} x${item.quantity}`)
+        .join(", "),
+      images: items
+        .filter((item) => item.product.image)
+        .map((item) => imageUrl(item.product.image!).url())
+        .slice(0, 8),
+      metadata: {
+        orderNumber: metadata.orderNumber,
+        customerName: metadata.customerName,
       },
-      quantity: item.quantity,
-    }));
+    });
 
-    // Adiciona frete se necessário
-    if (total < 100) {
-      line_items.push({
-        price_data: {
-          currency: "brl",
-          unit_amount: 4000, // R$ 40,00 em centavos
-          product_data: {
-            name: "Frete",
-            description: "Frete para pedidos abaixo de R$100",
-            metadata: {
-              id: "frete",
-            },
-            images: undefined,
-          },
-        },
+    const price = await stripe.prices.create({
+      unit_amount: installmentValue,
+      currency: "brl",
+      recurring: { interval: "month" },
+      product: product.id,
+    });
+
+    const lineItems = [
+      {
+        price: price.id,
+        quantity: 1,
+      },
+    ];
+
+    // Se tiver frete, adiciona como cobrança única
+    if (needsShipping) {
+      const shippingProduct = await stripe.products.create({
+        name: "Frete",
+        description: "Frete fixo para pedidos abaixo de R$100",
+      });
+
+      const shippingPrice = await stripe.prices.create({
+        unit_amount: shippingAmount * 100,
+        currency: "brl",
+        product: shippingProduct.id,
+      });
+
+      lineItems.push({
+        price: shippingPrice.id,
         quantity: 1,
       });
     }
@@ -91,12 +112,23 @@ export async function createCheckoutSession(
       customer: customerId,
       customer_creation: customerId ? undefined : "always",
       customer_email: !customerId ? metadata.customerEmail : undefined,
-      metadata,
-      mode: "payment",
+      metadata: {
+        ...metadata,
+        installments: installments.toString(),
+        totalAmount: totalWithShipping.toFixed(2),
+      },
+      mode: "subscription",
       allow_promotion_codes: true,
       success_url: successUrl,
       cancel_url: cancelUrl,
-      line_items,
+      line_items: lineItems,
+      subscription_data: {
+        metadata: {
+          ...metadata,
+          installments: installments.toString(),
+          totalAmount: totalWithShipping.toFixed(2),
+        },
+      },
     });
 
     return session.url;
