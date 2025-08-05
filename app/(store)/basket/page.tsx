@@ -69,8 +69,6 @@ const BasketPage = () => {
   };
 
   const total = useBasketStore.getState().getTotalPrice();
-
-  // 💸 Calcula valor da parcela
   const totalWithShipping = total < 100 ? total + 40 : total;
   const parcela = totalWithShipping / installments;
 
@@ -78,43 +76,54 @@ const BasketPage = () => {
     <div className="container mx-auto max-w-6xl p-4">
       <h1 className="mb-4 text-2xl font-bold">Sua Cesta</h1>
       <div className="flex flex-col gap-8 lg:flex-row">
-        <div className="grow">
-          {groupedItems?.map((item) => (
-            <div
-              className="mb-4 flex items-center justify-between rounded border p-4"
-              key={item.product._id}
-            >
+        <div className="flex-grow">
+          {groupedItems?.map((item) => {
+            // --- CORREÇÃO DE SINTAXE ---
+            // 1. A variável é definida AQUI, fora do JSX de retorno
+            const thumbnailImage = item.product.images?.[0];
+
+            return (
               <div
-                className="flex min-w-0 flex-1 cursor-pointer items-center"
-                onClick={() =>
-                  router.push(`/product/${item.product.slug?.current}`)
-                }
+                className="mb-4 flex items-center justify-between rounded border p-4"
+                key={item.product._id}
               >
-                <div className="mr-4 h-20 w-28 shrink-0 sm:size-24">
-                  {item.product.image && (
-                    <Image
-                      src={imageUrl(item.product.image).url()}
-                      alt={item.product.name || "Product image"}
-                      className="size-full rounded object-cover"
-                      width={96}
-                      height={96}
-                    />
-                  )}
+                <div
+                  className="flex min-w-0 flex-1 cursor-pointer items-center"
+                  onClick={() =>
+                    router.push(`/product/${item.product.slug?.current}`)
+                  }
+                >
+                  <div className="relative mr-4 h-20 w-28 shrink-0 overflow-hidden rounded-md bg-gray-100 sm:h-24 sm:w-24">
+                    {/* 2. Agora o ternário funciona, pois a variável já existe */}
+                    {thumbnailImage ? (
+                      <Image
+                        src={imageUrl(thumbnailImage).url()}
+                        alt={item.product.name || "Product image"}
+                        fill
+                        className="object-cover"
+                      />
+                    ) : (
+                      <div className="flex h-full w-full items-center justify-center">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="size-6 text-gray-300"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" x2="12" y1="3" y2="15"/></svg>
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="min-w-0">
+                    <h2 className="truncate text-lg font-semibold sm:text-xl">
+                      {item.product.name}
+                    </h2>
+                    <p className="text-sm sm:text-base">
+                      Preço: {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(item.product.price! * item.quantity)}
+                    </p>
+                  </div>
                 </div>
-                <div className="min-w-0">
-                  <h2 className="truncate text-lg font-semibold sm:text-xl">
-                    {item.product.name}
-                  </h2>
-                  <p className="text-sm sm:text-base">
-                    Preço: R$: {(item.product.price! * item.quantity).toFixed(2)}
-                  </p>
+                <div className="ml-4 flex shrink-0 items-center">
+                  <AddToBasketButton product={item.product} />
                 </div>
               </div>
-              <div className="ml-4 flex shrink-0 items-center">
-                <AddToBasketButton product={item.product} />
-              </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
 
         <div className="fixed bottom-0 left-0 order-first h-fit w-full rounded border bg-white p-6 lg:sticky lg:left-auto lg:top-4 lg:order-last lg:w-80">
@@ -129,12 +138,12 @@ const BasketPage = () => {
             {total < 100 && (
               <p className="flex justify-between">
                 <span>Frete:</span>
-                <span>R$: 40.00</span>
+                <span>R$ 40,00</span>
               </p>
             )}
             <p className="flex justify-between border-t pt-2 text-2xl font-bold">
               <span>Total:</span>
-              <span>R$: {totalWithShipping.toFixed(2)}</span>
+              <span>{new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(totalWithShipping)}</span>
             </p>
           </div>
 
@@ -153,7 +162,7 @@ const BasketPage = () => {
             >
               {Array.from({ length: 12 }, (_, i) => i + 1).map((num) => (
                 <option key={num} value={num}>
-                  {num}x de R$ {parcela.toFixed(2).replace(".", ",")}
+                  {num}x de {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(parcela)}
                 </option>
               ))}
             </select>
