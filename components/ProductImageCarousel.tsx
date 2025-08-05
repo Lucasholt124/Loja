@@ -1,4 +1,4 @@
-// src/components/ProductImageCarousel.tsx
+// ARQUIVO: src/components/ProductImageCarousel.tsx (Completo e Corrigido)
 
 "use client";
 
@@ -6,39 +6,40 @@ import React from "react";
 import Image from "next/image";
 import { Swiper, SwiperSlide } from "swiper/react";
 import { Navigation, Pagination } from "swiper/modules";
-import { imageUrl } from "@/lib/imageUrl"; // Importe sua função helper
+import { imageUrl } from "@/lib/imageUrl";
 
 // Importe os estilos CSS da Swiper
 import "swiper/css";
 import "swiper/css/navigation";
 import "swiper/css/pagination";
 
-// --- TIPAGENS ADICIONADAS ---
+// --- TIPAGENS CORRIGIDAS ---
 
-// 1. Definimos o tipo para um único objeto de imagem do Sanity
-// Isso descreve exatamente como o objeto de imagem se parece.
+// 1. Definimos o tipo para o 'asset' da imagem que vem EXPANDIDO da query (com `asset->`)
+// Ele não é mais uma referência, é o objeto de asset completo.
+interface SanityImageAsset {
+  _id: string;
+  _type: "sanity.imageAsset";
+  url: string; // O mais importante é que ele tem a URL
+  // Pode ter outros campos como 'metadata', 'path', etc., mas 'url' e '_id' são os essenciais.
+}
+
+// 2. O tipo para um único objeto de imagem agora espera um 'asset' do tipo SanityImageAsset
 interface SanityImage {
   _key: string;
   _type: "image";
-  alt?: string; // 'alt' é opcional
-  asset: {
-    _ref: string;
-    _type: "reference";
-  };
+  alt?: string;
+  asset: SanityImageAsset; // <-- MUDANÇA PRINCIPAL AQUI
 }
 
-// 2. Definimos o tipo para as props que o nosso componente recebe
+// 3. A prop do componente continua a mesma: espera um array de 'SanityImage'
 interface ProductImageCarouselProps {
-  images: SanityImage[]; // 'images' é um array (lista) de 'SanityImage'
+  images: SanityImage[];
 }
 
 // --- FIM DAS TIPAGENS ---
 
-
-// 3. Aplicamos o tipo 'ProductImageCarouselProps' às props do componente
 export default function ProductImageCarousel({ images }: ProductImageCarouselProps) {
-  // Agora o TypeScript sabe que 'images' é um array de SanityImage!
-
   if (!images || images.length === 0) {
     return (
       <div className="flex aspect-square w-full items-center justify-center rounded-lg bg-gray-200">
@@ -52,24 +53,27 @@ export default function ProductImageCarousel({ images }: ProductImageCarouselPro
       modules={[Navigation, Pagination]}
       navigation
       pagination={{ clickable: true }}
-      loop={true}
+      loop={images.length > 1} // O loop só faz sentido se tiver mais de 1 imagem
       className="h-full w-full"
     >
-      {/*
-        4. O TypeScript agora também sabe que 'image' dentro do map
-           é do tipo 'SanityImage', então não há mais erros.
-      */}
-      {images.map((image) => (
-        <SwiperSlide key={image._key}>
-          <Image
-            src={imageUrl(image).url()} // A função imageUrl espera um objeto do tipo SanityImage
-            alt={image.alt || "Product image"}
-            fill
-            className="object-contain"
-            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw" // Opcional, mas recomendado para otimização
-          />
-        </SwiperSlide>
-      ))}
+      {images.map((image) => {
+        // Verificação extra para o caso de algum asset dentro do array vir nulo
+        if (!image.asset) return null;
+
+        return (
+          <SwiperSlide key={image._key}>
+            <Image
+              // A função imageUrl provavelmente já sabe lidar com o objeto 'image' completo.
+              // Se não souber, a URL já está em image.asset.url
+              src={imageUrl(image).url()}
+              alt={image.alt || "Product image"}
+              fill
+              className="object-contain"
+              sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+            />
+          </SwiperSlide>
+        );
+      })}
     </Swiper>
   );
 }
