@@ -23,14 +23,25 @@ export const productType = defineType({
         maxLength: 96,
       },
     }),
+
+    // --- ALTERAÇÃO PRINCIPAL ---
+    // O campo de imagem única foi trocado por um array (lista) de imagens.
     defineField({
-      name: "image",
-      title: "Product Image",
-      type: "image",
-      options: {
-        hotspot: true,
-      },
+      name: "images", // 1. Renomeado para 'images' (plural)
+      title: "Product Images",
+      type: "array", // 2. Tipo alterado para 'array'
+      of: [
+        {
+          type: "image", // 3. A lista será composta de itens do tipo 'image'
+          options: {
+            hotspot: true, // Opção mantida para cada imagem da lista
+          },
+        },
+      ],
+      validation: (Rule) => Rule.required().min(1), // Opcional: exige pelo menos 1 imagem
     }),
+    // --- FIM DA ALTERAÇÃO ---
+
     defineField({
       name: "description",
       title: "Description",
@@ -58,13 +69,21 @@ export const productType = defineType({
   preview: {
     select: {
       title: "name",
-      media: "image",
+      // --- ALTERAÇÃO NO PREVIEW ---
+      // 4. Buscamos a primeira imagem do array 'images' para usar na miniatura.
+      media: "images.0",
       price: "price",
     },
     prepare(select) {
+      // Pequena melhoria para formatar o preço na pré-visualização.
+      const formattedPrice = new Intl.NumberFormat('pt-BR', {
+        style: 'currency',
+        currency: 'BRL',
+      }).format(select.price || 0);
+
       return {
         title: select.title,
-        subtitle: `${select.price}`,
+        subtitle: formattedPrice,
         media: select.media,
       };
     },

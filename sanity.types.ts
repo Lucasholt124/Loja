@@ -13,9 +13,6 @@
  */
 
 // Source: schema.json
-// Query TypeMap
-import "@sanity/client";
-
 export type SanityImagePaletteSwatch = {
   _type: "sanity.imagePaletteSwatch";
   background?: string;
@@ -124,17 +121,19 @@ export type Product = {
   _rev: string;
   name?: string;
   slug?: Slug;
-  image?: {
+  images?: Array<{
     asset?: {
       _ref: string;
       _type: "reference";
       _weak?: boolean;
       [internalGroqTypeReferenceTo]?: "sanity.imageAsset";
     };
+    media?: unknown;
     hotspot?: SanityImageHotspot;
     crop?: SanityImageCrop;
     _type: "image";
-  };
+    _key: string;
+  }>;
   description?: Array<{
     children?: Array<{
       marks?: Array<string>;
@@ -159,6 +158,7 @@ export type Product = {
       _weak?: boolean;
       [internalGroqTypeReferenceTo]?: "sanity.imageAsset";
     };
+    media?: unknown;
     hotspot?: SanityImageHotspot;
     crop?: SanityImageCrop;
     alt?: string;
@@ -217,6 +217,7 @@ export type BlockContent = Array<{
     _weak?: boolean;
     [internalGroqTypeReferenceTo]?: "sanity.imageAsset";
   };
+  media?: unknown;
   hotspot?: SanityImageHotspot;
   crop?: SanityImageCrop;
   alt?: string;
@@ -285,7 +286,7 @@ export type AllSanitySchemaTypes = SanityImagePaletteSwatch | SanityImagePalette
 export declare const internalGroqTypeReferenceTo: unique symbol;
 // Source: ./sanity/lib/orders/getMyOrders.ts
 // Variable: MY_ORDERS_QUERY
-// Query: *[            _type == "order" && clerkUserId == $userId        ] | order(orderDate desc) {            ...,            products[]{                ...,                product->            }        }
+// Query: *[      _type == "order" && clerkUserId == $userId    ] | order(orderDate desc) {      ...,      products[] {        ...,        product->      }    }
 export type MY_ORDERS_QUERYResult = Array<{
   _id: string;
   _type: "order";
@@ -308,17 +309,19 @@ export type MY_ORDERS_QUERYResult = Array<{
       _rev: string;
       name?: string;
       slug?: Slug;
-      image?: {
+      images?: Array<{
         asset?: {
           _ref: string;
           _type: "reference";
           _weak?: boolean;
           [internalGroqTypeReferenceTo]?: "sanity.imageAsset";
         };
+        media?: unknown;
         hotspot?: SanityImageHotspot;
         crop?: SanityImageCrop;
         _type: "image";
-      };
+        _key: string;
+      }>;
       description?: Array<{
         children?: Array<{
           marks?: Array<string>;
@@ -343,6 +346,7 @@ export type MY_ORDERS_QUERYResult = Array<{
           _weak?: boolean;
           [internalGroqTypeReferenceTo]?: "sanity.imageAsset";
         };
+        media?: unknown;
         hotspot?: SanityImageHotspot;
         crop?: SanityImageCrop;
         alt?: string;
@@ -394,17 +398,19 @@ export type ALL_PRODUCTS_QUERYResult = Array<{
   _rev: string;
   name?: string;
   slug?: Slug;
-  image?: {
+  images?: Array<{
     asset?: {
       _ref: string;
       _type: "reference";
       _weak?: boolean;
       [internalGroqTypeReferenceTo]?: "sanity.imageAsset";
     };
+    media?: unknown;
     hotspot?: SanityImageHotspot;
     crop?: SanityImageCrop;
     _type: "image";
-  };
+    _key: string;
+  }>;
   description?: Array<{
     children?: Array<{
       marks?: Array<string>;
@@ -429,6 +435,7 @@ export type ALL_PRODUCTS_QUERYResult = Array<{
       _weak?: boolean;
       [internalGroqTypeReferenceTo]?: "sanity.imageAsset";
     };
+    media?: unknown;
     hotspot?: SanityImageHotspot;
     crop?: SanityImageCrop;
     alt?: string;
@@ -447,9 +454,9 @@ export type ALL_PRODUCTS_QUERYResult = Array<{
 }>;
 
 // Source: ./sanity/lib/products/getProductBySlug.ts
-// Variable: PRODUCT_BY_ID_SLUG
-// Query: *[            _type == "product" && slug.current == $slug        ] | order(name asc)[0]
-export type PRODUCT_BY_ID_SLUGResult = {
+// Variable: PRODUCT_BY_SLUG_QUERY
+// Query: *[_type == "product" && slug.current == $slug][0] {      ..., // '...' busca todos os campos do documento principal (nome, preço, etc.)      // --- ALTERAÇÃO PRINCIPAL ---      // Especificamos que queremos todos os dados do array 'images'.      // O '[]' garante que todos os itens do array sejam retornados completos.      "images": images[]{        ...,        asset-> // Isso é crucial: expande a referência do asset para obter a URL da imagem.      }      // --- FIM DA ALTERAÇÃO ---    }
+export type PRODUCT_BY_SLUG_QUERYResult = {
   _id: string;
   _type: "product";
   _createdAt: string;
@@ -457,17 +464,35 @@ export type PRODUCT_BY_ID_SLUGResult = {
   _rev: string;
   name?: string;
   slug?: Slug;
-  image?: {
-    asset?: {
-      _ref: string;
-      _type: "reference";
-      _weak?: boolean;
-      [internalGroqTypeReferenceTo]?: "sanity.imageAsset";
-    };
+  images: Array<{
+    asset: {
+      _id: string;
+      _type: "sanity.imageAsset";
+      _createdAt: string;
+      _updatedAt: string;
+      _rev: string;
+      originalFilename?: string;
+      label?: string;
+      title?: string;
+      description?: string;
+      altText?: string;
+      sha1hash?: string;
+      extension?: string;
+      mimeType?: string;
+      size?: number;
+      assetId?: string;
+      uploadId?: string;
+      path?: string;
+      url?: string;
+      metadata?: SanityImageMetadata;
+      source?: SanityAssetSourceData;
+    } | null;
+    media?: unknown;
     hotspot?: SanityImageHotspot;
     crop?: SanityImageCrop;
     _type: "image";
-  };
+    _key: string;
+  }> | null;
   description?: Array<{
     children?: Array<{
       marks?: Array<string>;
@@ -492,6 +517,7 @@ export type PRODUCT_BY_ID_SLUGResult = {
       _weak?: boolean;
       [internalGroqTypeReferenceTo]?: "sanity.imageAsset";
     };
+    media?: unknown;
     hotspot?: SanityImageHotspot;
     crop?: SanityImageCrop;
     alt?: string;
@@ -520,17 +546,19 @@ export type PRODUCTS_BY_CATEGORY_QUERYResult = Array<{
   _rev: string;
   name?: string;
   slug?: Slug;
-  image?: {
+  images?: Array<{
     asset?: {
       _ref: string;
       _type: "reference";
       _weak?: boolean;
       [internalGroqTypeReferenceTo]?: "sanity.imageAsset";
     };
+    media?: unknown;
     hotspot?: SanityImageHotspot;
     crop?: SanityImageCrop;
     _type: "image";
-  };
+    _key: string;
+  }>;
   description?: Array<{
     children?: Array<{
       marks?: Array<string>;
@@ -555,6 +583,7 @@ export type PRODUCTS_BY_CATEGORY_QUERYResult = Array<{
       _weak?: boolean;
       [internalGroqTypeReferenceTo]?: "sanity.imageAsset";
     };
+    media?: unknown;
     hotspot?: SanityImageHotspot;
     crop?: SanityImageCrop;
     alt?: string;
@@ -583,17 +612,19 @@ export type PRODUCT_SEARCH_QUERYResult = Array<{
   _rev: string;
   name?: string;
   slug?: Slug;
-  image?: {
+  images?: Array<{
     asset?: {
       _ref: string;
       _type: "reference";
       _weak?: boolean;
       [internalGroqTypeReferenceTo]?: "sanity.imageAsset";
     };
+    media?: unknown;
     hotspot?: SanityImageHotspot;
     crop?: SanityImageCrop;
     _type: "image";
-  };
+    _key: string;
+  }>;
   description?: Array<{
     children?: Array<{
       marks?: Array<string>;
@@ -618,6 +649,7 @@ export type PRODUCT_SEARCH_QUERYResult = Array<{
       _weak?: boolean;
       [internalGroqTypeReferenceTo]?: "sanity.imageAsset";
     };
+    media?: unknown;
     hotspot?: SanityImageHotspot;
     crop?: SanityImageCrop;
     alt?: string;
@@ -652,12 +684,15 @@ export type ACTIVE_SALE_BY_COUPON_QUERYResult = {
   validUntil?: string;
   isActive?: boolean;
 } | null;
+
+// Query TypeMap
+import "@sanity/client";
 declare module "@sanity/client" {
   interface SanityQueries {
-    "\n        *[\n            _type == \"order\" && clerkUserId == $userId\n        ] | order(orderDate desc) {\n            ...,\n            products[]{\n                ...,\n                product->\n            }\n        }\n        ": MY_ORDERS_QUERYResult;
+    "*[\n      _type == \"order\" && clerkUserId == $userId\n    ] | order(orderDate desc) {\n      ...,\n      products[] {\n        ...,\n        product->\n      }\n    }\n  ": MY_ORDERS_QUERYResult;
     "\n        *[_type == \"category\"] | order(name asc)\n        ": ALL_CATEGORIES_QUERYResult;
     "\n        *[\n            _type == \"product\"\n        ] | order(name asc)\n        ": ALL_PRODUCTS_QUERYResult;
-    "\n        *[\n            _type == \"product\" && slug.current == $slug\n        ] | order(name asc)[0]\n        ": PRODUCT_BY_ID_SLUGResult;
+    "\n    *[_type == \"product\" && slug.current == $slug][0] {\n      ..., // '...' busca todos os campos do documento principal (nome, pre\xE7o, etc.)\n\n      // --- ALTERA\xC7\xC3O PRINCIPAL ---\n      // Especificamos que queremos todos os dados do array 'images'.\n      // O '[]' garante que todos os itens do array sejam retornados completos.\n      \"images\": images[]{\n        ...,\n        asset-> // Isso \xE9 crucial: expande a refer\xEAncia do asset para obter a URL da imagem.\n      }\n      // --- FIM DA ALTERA\xC7\xC3O ---\n    }\n  ": PRODUCT_BY_SLUG_QUERYResult;
     "\n    *[\n        _type == \"product\"\n        && references(*[_type == \"category\" && slug.current == $categorySlug]._id)\n    ] | order(name asc)\n    ": PRODUCTS_BY_CATEGORY_QUERYResult;
     "\n        *[\n            _type == \"product\"\n            && name match $searchParam\n        ] | order(name asc)\n        ": PRODUCT_SEARCH_QUERYResult;
     "\n        *[\n            _type == \"sale\"\n            && isActive == true\n            && couponCode == $couponCode\n        ] | order(validFrom desc)[0]\n        ": ACTIVE_SALE_BY_COUPON_QUERYResult;
