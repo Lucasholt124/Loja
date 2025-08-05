@@ -1,3 +1,4 @@
+
 "use server";
 
 import { imageUrl } from "@/lib/imageUrl";
@@ -60,20 +61,24 @@ export async function createCheckoutSession(
       (totalWithShipping / installments) * 100
     ); // em centavos
 
+    // --- ALTERAÇÃO PRINCIPAL AQUI ---
     const product = await stripe.products.create({
       name: `Pedido ${metadata.orderNumber}`,
       description: items
         .map((item) => `${item.product.name} x${item.quantity}`)
         .join(", "),
       images: items
-        .filter((item) => item.product.image)
-        .map((item) => imageUrl(item.product.image!).url())
-        .slice(0, 8),
+        // Filtra para garantir que o produto tenha um array 'images' e que ele não esteja vazio
+        .filter((item) => item.product.images && item.product.images.length > 0)
+        // Mapeia para pegar a URL da PRIMEIRA imagem do array de cada produto
+        .map((item) => imageUrl(item.product.images![0]).url())
+        .slice(0, 8), // O Stripe só permite 8 imagens, o slice continua correto
       metadata: {
         orderNumber: metadata.orderNumber,
         customerName: metadata.customerName,
       },
     });
+    // --- FIM DA ALTERAÇÃO ---
 
     const price = await stripe.prices.create({
       unit_amount: installmentValue,
