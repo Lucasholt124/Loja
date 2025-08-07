@@ -15,14 +15,13 @@ import { Heart as HeartIcon } from "lucide-react";
 // ISR (Incremental Static Regeneration) a cada 60 segundos.
 export const revalidate = 60;
 
-// Tipagem compatível com Next 14 e 15
-type ProductPageProps = {
-  params: { slug: string } | Promise<{ slug: string }>;
-};
-
-export default async function ProductPage(props: ProductPageProps) {
-  // Em Next 15, params é Promise; em Next 14, é objeto. Ambos funcionam com await.
-  const { slug } = await props.params;
+export default async function ProductPage({
+  params,
+}: {
+  params: Promise<{ slug: string }>;
+}) {
+  // No Next 15, params é Promise
+  const { slug } = await params;
 
   const product = await getProductBySlug(slug);
   if (!product || !product.slug?.current || !product.name) {
@@ -30,8 +29,6 @@ export default async function ProductPage(props: ProductPageProps) {
   }
 
   const isOutOfStock = product.stock != null && product.stock <= 0;
-
-  // Ajuste o prefixo de rota se você usa /produto ao invés de /product
   const currentPath = `/product/${encodeURIComponent(product.slug.current)}`;
 
   return (
@@ -61,7 +58,6 @@ export default async function ProductPage(props: ProductPageProps) {
                   {product.name}
                 </h1>
 
-                {/* Se logado, mostra o botão real de favoritos; se não, abre o modal do Clerk */}
                 <SignedIn>
                   <WishlistButton productSlug={product.slug.current} />
                 </SignedIn>
@@ -69,7 +65,6 @@ export default async function ProductPage(props: ProductPageProps) {
                 <SignedOut>
                   <SignInButton
                     mode="modal"
-                    // Em Clerk (modo modal) use forceRedirectUrl/fallbackRedirectUrl em vez de afterSignInUrl
                     forceRedirectUrl={currentPath}
                     signUpForceRedirectUrl={currentPath}
                   >
@@ -103,11 +98,11 @@ export default async function ProductPage(props: ProductPageProps) {
               <Separator className="my-6" />
 
               {/* Descrição */}
-              <div className="prose prose-lg max-w-none text-gray-600">
-                {Array.isArray(product.description) && (
-                  <PortableText value={product.description} />
-                )}
-              </div>
+              {Array.isArray((product as any).description) && (product as any).description.length > 0 && (
+                <div className="prose prose-lg max-w-none text-gray-600">
+                  <PortableText value={(product as any).description} />
+                </div>
+              )}
 
               <Separator className="my-6" />
 
