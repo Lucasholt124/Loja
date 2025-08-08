@@ -1,13 +1,15 @@
 {
-  "name": "shopr",
+  "name": "shopr-next-ecommerce",
   "version": "0.1.0",
   "private": true,
   "scripts": {
     "dev": "next dev",
+    "prebuild": "prisma generate",
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "typegen": "npx sanity@latest schema extract && npx sanity@latest typegen generate"
+    "typegen": "npx sanity@latest schema extract && npx sanity@latest typegen generate",
+    "postinstall": "prisma generate"
   },
   "dependencies": {
     "@clerk/localizations": "^3.13.5",
