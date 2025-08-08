@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import { auth, currentUser } from "@clerk/nextjs/server";
 import { v2 as cloudinary } from "cloudinary";
+import { Prisma, ReviewMediaType } from "@prisma/client";
 
 export const runtime = "nodejs";
 
@@ -12,7 +13,20 @@ cloudinary.config({
   api_secret: process.env.CLOUDINARY_API_SECRET,
 });
 
-async function uploadToCloudinary(file: File): Promise<{ url: string; type: "IMAGE" | "VIDEO" }> {
+function dbNotMigrated() {
+  return NextResponse.json(
+    {
+      error:
+        "Banco não migrado: tabelas do Prisma não existem. Rode as migrações em produção (prisma migrate deploy).",
+      code: "P2021",
+    },
+    { status: 503 }
+  );
+}
+
+async function uploadToCloudinary(
+  file: File
+): Promise<{ url: string; type: "IMAGE" | "VIDEO" }> {
   const arrayBuffer = await file.arrayBuffer();
   const buffer = Buffer.from(arrayBuffer);
   const isVideo = file.type?.startsWith("video/");
@@ -24,9 +38,7 @@ async function uploadToCloudinary(file: File): Promise<{ url: string; type: "IMA
         folder: "reviews",
       },
       (err, result) => {
-        if (err || !result) {
-          return reject(err || new Error("Upload falhou"));
-        }
+        if (err || !result) return reject(err || new Error("Upload falhou"));
         resolve({
           url: result.secure_url,
           type: result.resource_type === "video" ? "VIDEO" : "IMAGE",
@@ -51,14 +63,17 @@ export async function GET(request: Request) {
       where: { productSlug },
       orderBy: { createdAt: "desc" },
       include: {
-        user: { select: { firstName: true, imageUrl: true } },
-        media: true, // retorna imagens/vídeo do review
+        user: { select: { id: true, firstName: true, imageUrl: true } },
+        media: true,
       },
     });
 
     return NextResponse.json({ reviews });
-  } catch (e) {
-    console.error(e);
+  } catch (e: any) {
+    if (e instanceof Prisma.PrismaClientKnownRequestError && e.code === "P2021") {
+      return dbNotMigrated();
+    }
+    console.error("GET /api/reviews error:", e);
     return NextResponse.json({ error: "Erro ao buscar reviews" }, { status: 500 });
   }
 }
@@ -66,7 +81,7 @@ export async function GET(request: Request) {
 // POST: cria review (aceita JSON ou multipart/form-data com imagens/vídeo)
 export async function POST(request: Request) {
   try {
-    const { userId } = await auth();
+    const { userId } = await auth(); // não precisa await
     if (!userId) {
       return NextResponse.json({ error: "Não autorizado" }, { status: 401 });
     }
@@ -83,7 +98,7 @@ export async function POST(request: Request) {
       const form = await request.formData();
       productSlug = String(form.get("productSlug") ?? "");
       text = String(form.get("text") ?? "");
-      rating = parseInt(String(form.get("rating") ?? "0"), 10);
+      rating = Number(form.get("rating") ?? 0);
       imageFiles = (form.getAll("images") as unknown as File[]).filter(Boolean);
       const maybeVideo = form.get("video");
       videoFile = maybeVideo instanceof File ? maybeVideo : null;
@@ -91,17 +106,17 @@ export async function POST(request: Request) {
       const body = await request.json();
       productSlug = String(body.productSlug ?? "");
       text = String(body.text ?? "");
-      rating = parseInt(String(body.rating ?? "0"), 10);
+      rating = Number(body.rating ?? 0);
     }
 
-    if (!productSlug || !text || !rating) {
+    if (!productSlug || !text || !Number.isFinite(rating)) {
       return NextResponse.json({ error: "Dados incompletos" }, { status: 400 });
     }
     if (rating < 1 || rating > 5) {
       return NextResponse.json({ error: "Rating inválido" }, { status: 400 });
     }
 
-    // Garante o usuário no DB
+    // Garante o usuário no DB (email é único no schema)
     const clerk = await currentUser();
     const email =
       clerk?.primaryEmailAddress?.emailAddress ??
@@ -125,12 +140,7 @@ export async function POST(request: Request) {
 
     // Cria o review
     const review = await prisma.review.create({
-      data: {
-        userId,
-        productSlug,
-        text,
-        rating,
-      },
+      data: { userId, productSlug, text, rating },
     });
 
     // Upload de mídias (se Cloudinary estiver configurado)
@@ -155,7 +165,7 @@ export async function POST(request: Request) {
         await prisma.reviewMedia.createMany({
           data: uploads.map((m) => ({
             reviewId: review.id,
-            type: m.type,
+            type: m.type === "VIDEO" ? ReviewMediaType.VIDEO : ReviewMediaType.IMAGE,
             url: m.url,
           })),
         });
@@ -163,8 +173,11 @@ export async function POST(request: Request) {
     }
 
     return NextResponse.json({ ok: true, id: review.id }, { status: 201 });
-  } catch (e) {
-    console.error(e);
+  } catch (e: any) {
+    if (e instanceof Prisma.PrismaClientKnownRequestError && e.code === "P2021") {
+      return dbNotMigrated();
+    }
+    console.error("POST /api/reviews error:", e);
     return NextResponse.json({ error: "Erro ao criar review" }, { status: 500 });
   }
 }

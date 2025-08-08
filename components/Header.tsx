@@ -26,95 +26,117 @@ const Header = () => {
   const { count: favoritesCount, loading: favLoading } = useWishlistCount(Boolean(user));
 
   return (
-    <header className="flex flex-wrap items-center justify-between px-4 py-2">
-      <div className="flex w-full flex-wrap items-center justify-between ">
-        <Link
-          href="/"
-          className="mx-auto cursor-pointer text-2xl font-bold text-blue-500 hover:opacity-50 sm:mx-0"
-        >
-          Loja
-        </Link>
-
-        <Form
-          action="/search"
-          className="mt-2 max-w-md sm:mx-4 sm:mt-0 sm:w-auto sm:flex-1"
-        >
-          <input
-            className="w-full max-w-4xl rounded bg-gray-100 px-4 py-2 text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500/50"
-            type="text"
-            name="query"
-            placeholder="Pesquisar produtos"
-          />
-        </Form>
-
-        <div className="mt-4 flex flex-1 items-center justify-end space-x-4 sm:mt-0">
-          {/* Favoritos */}
-          <ClerkLoaded>
-            <SignedIn>
-              <Link
-                href="/favorites"
-                className="relative flex flex-1 items-center justify-center space-x-2 rounded bg-rose-500 px-4 py-2 font-bold text-white hover:bg-rose-600 sm:flex-none sm:justify-start"
-              >
-                <Heart className="size-6" />
-                <span className="absolute -right-2 -top-2 flex size-5 items-center justify-center rounded-full bg-red-500 text-xs text-white">
-                  {favLoading ? "…" : favoritesCount}
-                </span>
-                <span>Favoritos</span>
-              </Link>
-            </SignedIn>
-
-            <SignedOut>
-              <SignInButton mode="modal">
-                <button className="relative flex flex-1 items-center justify-center space-x-2 rounded bg-rose-500 px-4 py-2 font-bold text-white hover:bg-rose-600 sm:flex-none sm:justify-start">
-                  <Heart className="size-6" />
-                  <span className="absolute -right-2 -top-2 flex size-5 items-center justify-center rounded-full bg-red-500 text-xs text-white">
-                    0
-                  </span>
-                  <span>Favoritos</span>
-                </button>
-              </SignInButton>
-            </SignedOut>
-          </ClerkLoaded>
-
-          {/* Cesta */}
+    <header className="sticky top-0 z-40 border-b bg-white/80 backdrop-blur">
+      <div className="mx-auto w-full max-w-screen-2xl px-3 sm:px-4">
+        <div className="grid grid-cols-2 items-center gap-2 py-2 sm:grid-cols-3 md:grid-cols-12">
+          {/* Logo */}
           <Link
-            href="/basket"
-            className="relative flex flex-1 items-center justify-center space-x-2 rounded bg-blue-500 px-4 py-2 font-bold text-white hover:bg-blue-700 sm:flex-none sm:justify-start"
+            href="/"
+            className="order-1 col-span-1 justify-self-start text-2xl font-bold text-blue-600 hover:opacity-80 md:col-span-2"
           >
-            <TrolleyIcon className="size-6" />
-            <span className="absolute -right-2 -top-2 flex size-5 items-center justify-center rounded-full bg-red-500 text-xs text-white">
-              {itemCount}
-            </span>
-            <span>Minha Cesta</span>
+            Loja
           </Link>
 
-          <ClerkLoaded>
-            <SignedIn>
-              <Link
-                href="/orders"
-                className="relative flex flex-1 items-center justify-center space-x-2 rounded bg-blue-500 px-4 py-2 font-bold text-white hover:bg-blue-700 sm:flex-none sm:justify-start"
-              >
-                <PackageIcon className="size-6" />
-                <span>Meus pedidos</span>
-              </Link>
-            </SignedIn>
+          {/* Busca */}
+          <Form
+            action="/search"
+            role="search"
+            aria-label="Pesquisar produtos"
+            className="order-3 col-span-2 min-w-0 md:order-2 md:col-span-6"
+          >
+            <div className="relative">
+              <input
+                type="search"
+                name="query"
+                placeholder="Pesquisar produtos"
+                autoComplete="off"
+                className="h-10 w-full min-w-0 rounded-md border border-gray-200 bg-gray-50 px-3 text-sm text-gray-900 placeholder-gray-400 outline-none transition focus:border-blue-500 focus:bg-white focus:ring-2 focus:ring-blue-500/20"
+              />
+            </div>
+          </Form>
 
-            {user ? (
-              <div className="flex items-center space-x-2">
-                <UserButton />
-                <div className="hidden text-xs sm:block">
-                  <p className="text-gray-400">Bem-vindo de volta</p>
-                  <p className="font-bold">{user.fullName}</p>
+          {/* Ações */}
+          <div className="order-2 col-span-1 flex items-center justify-end gap-2 overflow-x-auto md:order-3 md:col-span-4 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
+            {/* Favoritos */}
+            <ClerkLoaded>
+              <SignedIn>
+                <Link
+                  href="/favorites"
+                  aria-label="Favoritos"
+                  className="relative inline-flex h-10 shrink-0 items-center gap-2 rounded-md bg-rose-600 px-3 text-sm font-semibold text-white transition hover:bg-rose-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-rose-500/40"
+                >
+                  <Heart className="h-5 w-5" />
+                  <span className="hidden md:inline">Favoritos</span>
+                  <span className="absolute -right-1.5 -top-1.5 grid h-4 w-4 place-items-center rounded-full bg-red-500 text-[10px] font-bold text-white ring-2 ring-white">
+                    {favLoading ? "…" : favoritesCount}
+                  </span>
+                </Link>
+              </SignedIn>
+
+              <SignedOut>
+                <SignInButton mode="modal">
+                  <button
+                    aria-label="Favoritos (entrar para ver)"
+                    className="relative inline-flex h-10 shrink-0 items-center gap-2 rounded-md bg-rose-600 px-3 text-sm font-semibold text-white transition hover:bg-rose-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-rose-500/40"
+                  >
+                    <Heart className="h-5 w-5" />
+                    <span className="hidden md:inline">Favoritos</span>
+                    <span className="absolute -right-1.5 -top-1.5 grid h-4 w-4 place-items-center rounded-full bg-red-500 text-[10px] font-bold text-white ring-2 ring-white">
+                      0
+                    </span>
+                  </button>
+                </SignInButton>
+              </SignedOut>
+            </ClerkLoaded>
+
+            {/* Cesta */}
+            <Link
+              href="/basket"
+              aria-label="Minha Cesta"
+              className="relative inline-flex h-10 shrink-0 items-center gap-2 rounded-md bg-blue-600 px-3 text-sm font-semibold text-white transition hover:bg-blue-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500/40"
+            >
+              <TrolleyIcon className="h-5 w-5" />
+              <span className="hidden md:inline">Minha Cesta</span>
+              <span className="absolute -right-1.5 -top-1.5 grid h-4 w-4 place-items-center rounded-full bg-red-500 text-[10px] font-bold text-white ring-2 ring-white">
+                {itemCount}
+              </span>
+            </Link>
+
+            {/* Pedidos (esconde no xs para não lotar) */}
+            <ClerkLoaded>
+              <SignedIn>
+                <Link
+                  href="/orders"
+                  aria-label="Meus pedidos"
+                  className="hidden h-10 shrink-0 items-center gap-2 rounded-md bg-blue-600 px-3 text-sm font-semibold text-white transition hover:bg-blue-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500/40 sm:inline-flex"
+                >
+                  <PackageIcon className="h-5 w-5" />
+                  <span className="hidden md:inline">Meus pedidos</span>
+                </Link>
+              </SignedIn>
+            </ClerkLoaded>
+
+            {/* Usuário / Entrar */}
+            <ClerkLoaded>
+              {user ? (
+                <div className="ml-1 flex shrink-0 items-center gap-2">
+                  <UserButton />
+                  <div className="hidden max-w-[160px] text-left md:block">
+                    <p className="text-xs leading-none text-gray-500">Bem-vindo de volta</p>
+                    <p className="truncate text-sm font-semibold leading-tight">
+                      {user.fullName}
+                    </p>
+                  </div>
                 </div>
-              </div>
-            ) : (
-              <SignInButton mode="modal">
-                <button className="rounded bg-gray-100 px-4 py-2 font-semibold text-gray-700 hover:bg-gray-200">
-                  Entrar
-                </button>
-              </SignInButton>
-            )}
-          </ClerkLoaded>
+              ) : (
+                <SignInButton mode="modal">
+                  <button className="inline-flex h-10 shrink-0 items-center rounded-md border border-gray-200 bg-white px-3 text-sm font-semibold text-gray-700 transition hover:bg-gray-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500/40">
+                    Entrar
+                  </button>
+                </SignInButton>
+              )}
+            </ClerkLoaded>
+          </div>
         </div>
       </div>
     </header>
