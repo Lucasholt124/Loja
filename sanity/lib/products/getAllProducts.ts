@@ -18,4 +18,6 @@ export const getAllProducts = async () => {
     console.error("Error fetching all products:", error);
     return [];
   }
+
 };
+
