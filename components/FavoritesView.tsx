@@ -168,6 +168,8 @@ export default function FavoritesView({ products }: Props) {
                   onChange={(e) => setSort(e.target.value as any)}
                   className="border-none bg-transparent font-bold text-gray-900 outline-none"
                 >
+
+
                   <option value="nome">Nome (A–Z)</option>
                   <option value="preco-asc">Menor Preço</option>
                   <option value="preco-desc">Maior Preço</option>
