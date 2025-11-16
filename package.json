@@ -25,6 +25,7 @@
     "@sanity/preview-kit": "^6.0.6",
     "@sanity/ui": "^2.15.12",
     "@sanity/vision": "^3.65.1",
+    "canvas-confetti": "^1.9.4",
     "class-variance-authority": "^0.7.1",
     "cloudinary": "^2.7.0",
     "clsx": "^2.1.1",
@@ -48,6 +49,7 @@
   },
   "devDependencies": {
     "@tailwindcss/typography": "^0.5.15",
+    "@types/canvas-confetti": "^1.9.0",
     "@types/estree": "^1.0.7",
     "@types/node": "^20",
     "@types/react": "^18",
