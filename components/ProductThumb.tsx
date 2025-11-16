@@ -9,6 +9,8 @@ import React, { useState, useEffect } from "react";
 import { Heart, Zap, TrendingUp, Star } from "lucide-react";
 import useBasketStore from "@/lib/store";
 
+
+
 const formatBRL = (value?: number) =>
   new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(value ?? 0);
 
