@@ -18,6 +18,7 @@ import ProductReviews from "@/components/ProductReviews";
 import { Separator } from "@/components/ui/separator";
 import AddToBasketButton from "@/components/AddToBasket";
 import ProductThumb from "@/components/ProductThumb";
+import ProductRating from "@/components/ProductRating";
 
 // ISR (Incremental Static Regeneration) a cada 60 segundos.
 export const revalidate = 60;
@@ -351,25 +352,30 @@ export default async function ProductPage({
                   {product.name}
                 </h1>
 
-                <div className="shrink-0">
-                  <SignedIn>
-                    <WishlistButton productSlug={product.slug.current} />
-                  </SignedIn>
-                  <SignedOut>
-                    <SignInButton
-                      mode="modal"
-                      forceRedirectUrl={currentPath}
-                      signUpForceRedirectUrl={currentPath}
-                    >
-                      <button
-                        aria-label="Adicionar aos favoritos (requer login)"
-                        className="rounded-full border border-gray-200 bg-white p-2 text-gray-700 transition hover:bg-gray-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500/40"
-                      >
-                        <HeartIcon className="size-6" />
-                      </button>
-                    </SignInButton>
-                  </SignedOut>
+                {/* ⭐ AVALIAÇÕES ADICIONADAS AQUI */}
+                <div className="mt-3">
+                  <ProductRating productSlug={product.slug.current} size="lg" />
                 </div>
+              </div>
+
+              <div className="shrink-0">
+                <SignedIn>
+                  <WishlistButton productSlug={product.slug.current} />
+                </SignedIn>
+                <SignedOut>
+                  <SignInButton
+                    mode="modal"
+                    forceRedirectUrl={currentPath}
+                    signUpForceRedirectUrl={currentPath}
+                  >
+                    <button
+                      aria-label="Adicionar aos favoritos (requer login)"
+                      className="rounded-full border border-gray-200 bg-white p-2 text-gray-700 transition hover:bg-gray-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500/40"
+                    >
+                      <HeartIcon className="size-6" />
+                    </button>
+                  </SignInButton>
+                </SignedOut>
               </div>
 
               {/* Preço e Estoque */}

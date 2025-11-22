@@ -1,4 +1,3 @@
-
 "use server";
 
 import { imageUrl } from "@/lib/imageUrl";
@@ -46,39 +45,44 @@ export async function createCheckoutSession(
     const successUrl = `${baseUrl}/success?session_id={CHECKOUT_SESSION_ID}&orderNumber=${metadata.orderNumber}`;
     const cancelUrl = `${baseUrl}/basket`;
 
-    // Soma total dos produtos
     const total = items.reduce(
-      (sum, item) => sum + (item.product.price! * item.quantity),
+      (sum, item) => sum + item.product.price! * item.quantity,
       0
     );
 
     const needsShipping = total < 100;
     const shippingAmount = needsShipping ? 40 : 0;
-
-    // Valor das parcelas (total + frete se tiver)
     const totalWithShipping = total + shippingAmount;
     const installmentValue = Math.ceil(
       (totalWithShipping / installments) * 100
-    ); // em centavos
+    );
 
-    // --- ALTERAÇÃO PRINCIPAL AQUI ---
+    // --- CORREÇÃO: CRIAÇÃO DO JSON DOS ITENS ---
+    // Criamos um resumo minificado dos itens para caber no metadata do Stripe (max 500 chars)
+    // Salvamos apenas o ID e a Quantidade (q)
+    const sanityItemsJson = JSON.stringify(
+      items.map((item) => ({
+        id: item.product._id,
+        q: item.quantity,
+      }))
+    );
+
     const product = await stripe.products.create({
       name: `Pedido ${metadata.orderNumber}`,
       description: items
         .map((item) => `${item.product.name} x${item.quantity}`)
         .join(", "),
       images: items
-        // Filtra para garantir que o produto tenha um array 'images' e que ele não esteja vazio
         .filter((item) => item.product.images && item.product.images.length > 0)
-        // Mapeia para pegar a URL da PRIMEIRA imagem do array de cada produto
         .map((item) => imageUrl(item.product.images![0]).url())
-        .slice(0, 8), // O Stripe só permite 8 imagens, o slice continua correto
+        .slice(0, 8),
       metadata: {
         orderNumber: metadata.orderNumber,
         customerName: metadata.customerName,
+        // 🔥 AQUI ESTÁ O SEGREDO: Salvamos os itens aqui para o webhook ler depois
+        sanityItems: sanityItemsJson.slice(0, 500), // Proteção contra limite de caracteres
       },
     });
-    // --- FIM DA ALTERAÇÃO ---
 
     const price = await stripe.prices.create({
       unit_amount: installmentValue,
@@ -94,7 +98,6 @@ export async function createCheckoutSession(
       },
     ];
 
-    // Se tiver frete, adiciona como cobrança única
     if (needsShipping) {
       const shippingProduct = await stripe.products.create({
         name: "Frete",

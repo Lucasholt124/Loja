@@ -30,12 +30,20 @@ export default function ProductsView({
   const filteredAndSorted = useMemo(() => {
     let filtered = [...products];
 
+console.log('Produto exemplo:', products[0]);
+console.log('Categorias do produto:', products[0]?.categories);
+  console.log('selectedCategory:', selectedCategory);
+
     // Filtrar por categoria
-    if (selectedCategory) {
-      filtered = filtered.filter((p) =>
-        p.categories?.some((cat: any) => cat._id === selectedCategory)
-      );
-    }
+   if (selectedCategory) {
+  filtered = filtered.filter((p) => {
+    const categories = p.categories || [];
+    return categories.some((cat: any) => {
+      // Suporta categoria expandida (_id) ou referência (_ref)
+      return cat._id === selectedCategory || cat._ref === selectedCategory;
+    });
+  });
+}
 
     // Ordenar
     switch (sortBy) {

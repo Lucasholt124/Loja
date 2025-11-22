@@ -6,10 +6,8 @@ import { PortableText } from "next-sanity";
 import Image from "next/image";
 import Link from "next/link";
 import React, { useState, useEffect } from "react";
-import { Heart, Zap, TrendingUp, Star } from "lucide-react";
+import { Heart, Zap, Star } from "lucide-react";
 import useBasketStore from "@/lib/store";
-
-
 
 const formatBRL = (value?: number) =>
   new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(value ?? 0);
@@ -23,6 +21,7 @@ const ProductThumb = ({ product, showRating = true }: ProductThumbProps) => {
   const [isWishlisted, setIsWishlisted] = useState(false);
   const [addedToCart, setAddedToCart] = useState(false);
   const [rating, setRating] = useState<{ average: number; count: number } | null>(null);
+  const [loadingRating, setLoadingRating] = useState(true);
   const { addItem, getItemCount } = useBasketStore();
 
   const itemCount = getItemCount(product._id);
@@ -38,14 +37,22 @@ const ProductThumb = ({ product, showRating = true }: ProductThumbProps) => {
   // Buscar avaliações do produto
   useEffect(() => {
     if (showRating && product.slug?.current) {
-      fetch(`/api/reviews/average?productSlug=${product.slug.current}`)
+      setLoadingRating(true);
+      fetch(`/api/reviews/average?productSlug=${encodeURIComponent(product.slug.current)}`)
         .then((res) => res.json())
         .then((data) => {
-          if (data.average) {
+          if (data.count > 0) {
             setRating({ average: data.average, count: data.count });
           }
         })
-        .catch(() => {});
+        .catch((error) => {
+          console.error("Error loading ratings:", error);
+        })
+        .finally(() => {
+          setLoadingRating(false);
+        });
+    } else {
+      setLoadingRating(false);
     }
   }, [product.slug?.current, showRating]);
 
@@ -89,10 +96,10 @@ const ProductThumb = ({ product, showRating = true }: ProductThumbProps) => {
         disabled ? "pointer-events-none opacity-60" : "",
       ].join(" ")}
     >
-      {/* Badge Popular */}
+      {/* Badge Popular ou TOP AVALIADO */}
       {!isOutOfStock && rating && rating.average >= 4.5 && (
         <div className="absolute left-3 top-3 z-20 flex items-center gap-1.5 rounded-full bg-gradient-to-r from-violet-600 to-fuchsia-600 px-3 py-1 text-xs font-bold text-white shadow-lg backdrop-blur-sm">
-          <TrendingUp className="size-3" />
+          <Star className="size-3" fill="currentColor" />
           TOP AVALIADO
         </div>
       )}
@@ -188,26 +195,45 @@ const ProductThumb = ({ product, showRating = true }: ProductThumbProps) => {
           {product.name || "Produto sem nome"}
         </h2>
 
-        {/* Avaliações */}
-        {showRating && rating && rating.count > 0 && (
-          <div className="mb-2 flex items-center gap-2">
-            <div className="flex items-center">
-              {Array.from({ length: 5 }).map((_, i) => (
-                <Star
-                  key={i}
-                  className={`size-4 ${
-                    i < Math.floor(rating.average)
-                      ? "fill-yellow-400 text-yellow-400"
-                      : i < rating.average
-                      ? "fill-yellow-400/50 text-yellow-400"
-                      : "fill-gray-200 text-gray-200"
-                  }`}
-                />
-              ))}
-            </div>
-            <span className="text-xs font-semibold text-gray-600">
-              {rating.average.toFixed(1)} ({rating.count})
-            </span>
+        {/* Avaliações - MOSTRAR SEMPRE MESMO SEM REVIEWS */}
+        {showRating && (
+          <div className="mb-2 flex items-center gap-2 min-h-[24px]">
+            {loadingRating ? (
+              <div className="flex items-center gap-1">
+                <div className="size-4 animate-pulse rounded-full bg-gray-200" />
+                <div className="h-3 w-16 animate-pulse rounded bg-gray-200" />
+              </div>
+            ) : rating && rating.count > 0 ? (
+              <>
+                <div className="flex items-center gap-0.5">
+                  {Array.from({ length: 5 }).map((_, i) => (
+                    <Star
+                      key={i}
+                      className={`size-4 ${
+                        i < Math.floor(rating.average)
+                          ? "fill-yellow-400 text-yellow-400"
+                          : i < rating.average
+                          ? "fill-yellow-400/50 text-yellow-400"
+                          : "fill-gray-200 text-gray-200"
+                      }`}
+                    />
+                  ))}
+                </div>
+                <span className="text-xs font-semibold text-gray-600">
+                  {rating.average.toFixed(1)} ({rating.count})
+                </span>
+              </>
+            ) : (
+              <div className="flex items-center gap-0.5">
+                {Array.from({ length: 5 }).map((_, i) => (
+                  <Star
+                    key={i}
+                    className="size-4 fill-gray-200 text-gray-200"
+                  />
+                ))}
+                <span className="ml-1 text-xs text-gray-400">Sem avaliações</span>
+              </div>
+            )}
           </div>
         )}
 
