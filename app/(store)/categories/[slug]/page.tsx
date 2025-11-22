@@ -5,6 +5,15 @@ import React from "react";
 import { Grid3x3, Sparkles } from "lucide-react";
 import Link from "next/link";
 
+// 1. Definimos a interface para tipar os dados brutos que vêm do Sanity
+interface SanityCategory {
+  _id: string;
+  title?: string;
+  slug?: {
+    current: string;
+  };
+}
+
 const CategoryPage = async ({
   params,
 }: {
@@ -12,11 +21,14 @@ const CategoryPage = async ({
 }) => {
   const { slug } = await params;
   const products = await getProductsByCategory(slug);
-  const rawCategories = await getAllCategories();
+
+  // É recomendável tipar o retorno da função se ela não estiver tipada,
+  // ou deixar o TypeScript inferir se a função já tiver tipos.
+  const rawCategories: SanityCategory[] = await getAllCategories();
 
   // Transforma as categorias para o formato esperado pelo ProductsView
   const categories = rawCategories
-    .map((cat) => {
+    .map((cat) => { // Agora o TS sabe que 'cat' é do tipo SanityCategory
       if (!cat._id || !cat.title || !cat.slug?.current) {
         return null; // Ignora categorias incompletas
       }
