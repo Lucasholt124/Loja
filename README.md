@@ -1,36 +1,49 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# 🛒 Modern E-commerce Full Stack
 
-## Getting Started
+Este é um projeto de E-commerce de alta performance desenvolvido com o ecossistema mais moderno do React e Next.js. O foco principal foi criar uma aplicação escalável, com gerenciamento de conteúdo dinâmico (CMS) e otimização técnica para SEO e conversão.
 
-First, run the development server:
+## 🚀 Tecnologias Utilizadas
 
-```bash
+- **Framework:** [Next.js](https://nextjs.org/) (App Router & Server Components)
+- **Linguagem:** [TypeScript](https://www.typescript.org/) (Tipagem estrita para segurança de dados)
+- **Estilização:** [Tailwind CSS](https://tailwindcss.com/)
+- **CMS Headless:** [Sanity.io](https://www.sanity.io/) (Gerenciamento de produtos e estoque em tempo real)
+- **ORM / Database:** [Prisma](https://www.prisma.io/) com PostgreSQL
+- **Autenticação & Middleware:** Proteção de rotas e sessões otimizadas.
+- **UI Components:** [Radix UI](https://www.radix-ui.com/) / Shadcn UI (Acessibilidade e design responsivo)
+
+## 🛠️ Funcionalidades Principais
+
+- **SSR & ISR:** Renderização no lado do servidor e regeneração estática para garantir velocidade máxima.
+- **CMS Integration:** Painel administrativo via Sanity para controle de banners, categorias e detalhes de produtos.
+- **Carrinho Dinâmico:** Gerenciamento de estado otimizado para uma experiência de compra fluida.
+- **Design Responsivo:** Interface adaptável para Mobile, Tablet e Desktop.
+- **Middleware de Segurança:** Validação de acessos e otimização de requisições.
+
+## 📦 Estrutura do Projeto
+
+- `/aplicativo`: Rotas e lógica de páginas do Next.js.
+- `/componentes`: Componentes de UI modulares e reutilizáveis.
+- `/prisma`: Esquemas de banco de dados e migrações.
+- `/sanidade`: Configurações do Headless CMS para o lojista.
+- `/biblioteca`: Funções utilitárias e clientes de API.
+
+## 🏁 Como Rodar o Projeto
+
+1. Clone o repositório:
+   ```bash
+   git clone [https://github.com/Lucasholt124/Loja.git](https://github.com/Lucasholt124/Loja.git)
+
+ 2.  Instale as dependências:
+
+Bash
+npm install
+
+3. Configure as variáveis de ambiente (.env) com suas chaves do Sanity e Banco de Dados.
+
+4. Execute o servidor de desenvolvimento:
+
+Bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
-
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
-
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
-
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Desenvolvido por Lucas Aragão
